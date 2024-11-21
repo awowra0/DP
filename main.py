@@ -32,7 +32,7 @@ class LibraryCatalog(object):
     
     Methods:
     get_catalog() -> list: Returns full catalog.
-    get_next() -> Book: Return next book in catalog.
+    get_next() -> Book: Returns next book in catalog.
     add_book(book: Book): Adds book to catalog.
     """
     def __new__(self):
@@ -61,8 +61,66 @@ class DataAdapter:
         pass
 
 
-#Iterator
+#Factory
+class User:
+    def __init__(self, name: str):
+        self.name = name
+        self.limit = 0
+        self.books = []
+        raise NotImplementedError("User is supposed to be an abstract class")
 
+    def borrow_book(identify: int) -> bool:
+        if self.limit >= len(self.books):
+            #log "max book limit reached"
+            return False
+        #Code for facade - find book, borrow it or not, connect user with Observer
+        return True
+            
+    def return_book(identify: int) -> bool:
+        for i in self.books:
+            if i.identify == identify:
+                #Code for Facade, make book available, update Observer
+                return True
+        return False
+
+
+class Student(User):
+    def __init__(self, name: str):
+        self.name = name
+        self.limit = 5
+        self.books = []
+
+
+class Teacher(User):
+    def __init__(self, name: str):
+        self.name = name
+        self.limit = 15
+        self.books = []
+
+
+class Librarian(User):
+    def __init__(self, name: str):
+        self.name = name
+        self.limit = 25
+        self.books = []
+
+
+class UserFactory:
+    def create_user(user: str, name: str) -> User:
+        if user == "student":
+            return Student(name)
+        elif user == "teacher":
+            return Teacher(name)
+        elif user == "librarian":
+            return Librarian(name)
+        else:
+            raise TypeError("Unknown user kind inserted.")
+
+
+#Facade
+
+
+#Observer
 
 
 a = LibraryCatalog()
@@ -74,3 +132,11 @@ print(range(5) is range(5))
 print(range(5) == range(5))
 for i in range(7):
     print(a.get_next())
+try:
+    error_class = User("A")
+except Exception as e:
+    print(e)
+try:
+    error_class = UserFactory.create_user(User, "A")
+except Exception as e:
+    print(e)
