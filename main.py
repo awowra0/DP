@@ -21,6 +21,17 @@ class Book:
 
 #Classes for Factory
 class User:
+    """
+    Abstract class representing user. Do not use it directly.
+    
+    Constructor parameters:
+    name (str): User name.
+    
+    Parameters:
+    name (str): User name.
+    limit (int): Book limit.
+    books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
+    """
     def __init__(self, name: str):
         self.name = name
         self.limit = 0
@@ -29,6 +40,17 @@ class User:
 
 
 class Student(User):
+    """
+    Class representing student.
+    
+    Constructor parameters:
+    name (str): User name.
+    
+    Parameters:
+    name (str): User name.
+    limit (int): Book limit.
+    books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
+    """
     def __init__(self, name: str):
         self.name = name
         self.limit = 5
@@ -36,6 +58,17 @@ class Student(User):
 
 
 class Teacher(User):
+    """
+    Class representing teacher.
+    
+    Constructor parameters:
+    name (str): User name.
+    
+    Parameters:
+    name (str): User name.
+    limit (int): Book limit.
+    books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
+    """
     def __init__(self, name: str):
         self.name = name
         self.limit = 15
@@ -43,6 +76,17 @@ class Teacher(User):
 
 
 class Librarian(User):
+    """
+    Class representing librarian.
+    
+    Constructor parameters:
+    name (str): User name.
+    
+    Parameters:
+    name (str): User name.
+    limit (int): Book limit.
+    books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
+    """
     def __init__(self, name: str):
         self.name = name
         self.limit = 25
@@ -68,6 +112,13 @@ class LibraryCatalog(object):
     get_catalog() -> dict: Returns full catalog.
     get_next() -> str: Returns next book in catalog.
     add_book(book: Book) -> int: Adds book to catalog. Increases count and returns 1 if book already exists, otherwise returns 2.
+    borrow_book(user: User, identify: int) -> int: Tries to find a book by its ID and declare one of copies as ordered by user. Decreases book count and returns 1 if user has not reached book limit and book is available, 0 if book is unavailable right now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does not exist.
+    return_book(user: User, identify: int) -> int: Tries to find a book by its ID and return it to library. Increases book count, removes it from user's list and returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if user has not borrowed this book or -3 if the book does not exist.
+    update_borrow(user: User, identify: int) -> int: Tries to update book's status in user's list from "Ordered" to "Borrowed". Changes status and returns 1 if user has this book and it is "Ordered", -1 if the book is not "Ordered" or -2 if user does not have this book in its list.
+    
+    Notes:
+    Why Singleton? Library needs only one catalog for books. Creating second one may make a mess with searching in two catalog and this would be troublesome.
+    Why Iterator? Catalog may become very big in time and looking at dictionary of all books can be confusing. By showing one book lineally, user can look at different book every time if catalog is big enough.
     """
     def __new__(self):
         if not hasattr(self, "instance"):
@@ -158,6 +209,15 @@ class DataAdapter:
 
 #Factory
 class UserFactory:
+    """
+    Class implementing Factory design pattern to create new users.
+    
+    Methods:
+    create_user(user: str, name: str) -> User: Tries to create a proper user class. Return Student, Teacher or Librarian class with chosen name or raises Error for different class names.
+    
+    Notes:
+    Why Factory? It is a simple solution to create multiple various accounts. Now it is obvious what classes are available plus method input can be universal.
+    """
     def create_user(user: str, name: str) -> User:
         if user == "student":
             return Student(name)
@@ -171,10 +231,24 @@ class UserFactory:
 
 #Facade
 class ActionInterface:
+    """
+    Class implementing Facade design pattern to show available commands as simple 'interface'.
+    
+    Parameters:
+    catalog (LibraryCatalog): Catalog that does every method presented by interface.
+    
+    Methods:
+    get_catalog() -> dict: Returns full catalog.
+    get_next() -> str: Returns next book in catalog.
+    add_book(book: Book) -> int: Adds book to catalog. Increases count and returns 1 if book already exists, otherwise returns 2.
+    borrow_book(user: User, identify: int) -> int: Tries to find a book by its ID and declare one of copies as ordered by user. Decreases book count and returns 1 if user has not reached book limit and book is available, 0 if book is unavailable right now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does not exist.
+    return_book(user: User, identify: int) -> int: Tries to find a book by its ID and return it to library. Increases book count, removes it from user's list and returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if user has not borrowed this book or -3 if the book does not exist.
+    update_borrow(user: User, identify: int) -> int: Tries to update book's status in user's list from "Ordered" to "Borrowed". Changes status and returns 1 if user has this book and it is "Ordered", -1 if the book is not "Ordered" or -2 if user does not have this book in its list.
+    """
     def __init__(self, catalog: LibraryCatalog):
         self.catalog = catalog
         
-    def add_book(self, book) -> bool:
+    def add_book(self, book: Book) -> bool:
         return self.catalog.add_book(book)
         
     def show_catalog(self) -> dict:
