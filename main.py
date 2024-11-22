@@ -27,18 +27,18 @@ class LibraryCatalog(object):
     
     Parameters:
     instance (LibraryCatalog): Singleton instance.
-    catalog (list): List of book in catalog.
+    catalog (dict(Book: list(int, int))): Dictionary with books in catalog, their available count and total count.
     current (int): Index used for Iterator design pattern in get_next() method.
     
     Methods:
-    get_catalog() -> list: Returns full catalog.
-    get_next() -> Book: Returns next book in catalog.
-    add_book(book: Book): Adds book to catalog.
+    get_catalog() -> dict: Returns full catalog.
+    get_next() -> str: Returns next book in catalog.
+    add_book(book: Book) -> int: Adds book to catalog. Increases count and returns 1 if book already exists, otherwise returns 2.
     """
     def __new__(self):
         if not hasattr(self, "instance"):
             self.instance = super(LibraryCatalog, self).__new__(self)
-            self.catalog = ["A", "B", "C"]
+            self.catalog = {}
             self.current = 0
         return self.instance
     
@@ -47,14 +47,22 @@ class LibraryCatalog(object):
         
     #Iterator
     def get_next(self) -> Book:
+        if len(self.get_catalog()) < 1:
+            return None
         if self.current == len(self.get_catalog()):
             self.current = 0
         self.current += 1
-        return self.get_catalog()[self.current-1]
+        book_key = list(self.get_catalog().keys())[self.current-1] 
+        return f"{book_key}, {self.catalog[book_key][0]}/{self.catalog[book_key][1]}"
         
-    def add_book(self, book: Book) -> bool:
-        self.catalog.append(book)
-        return True
+    def add_book(self, book: Book) -> int:
+        if book not in self.catalog:
+            self.catalog[book] = [1, 1]
+            return 2
+        else:
+            self.catalog[book][0] += 1
+            self.catalog[book][1] += 1
+        return 1
 
 #Adapter
 class DataAdapter:
@@ -62,7 +70,7 @@ class DataAdapter:
         pass
 
 
-#Factory
+#Classes for Factory
 class User:
     def __init__(self, name: str):
         self.name = name
@@ -106,6 +114,7 @@ class Librarian(User):
         self.books = []
 
 
+#Factory
 class UserFactory:
     def create_user(user: str, name: str) -> User:
         if user == "student":
@@ -142,7 +151,8 @@ class ActionInterface:
 
 
 a = LibraryCatalog()
-a.add_book("D")
+for i in ["A", "B", "C", "D"]:
+    a.add_book(i)
 print(a.get_catalog())
 b = LibraryCatalog()
 print(a is b)
@@ -160,6 +170,6 @@ try:
 except Exception as e:
     print(e)
 test_interface = ActionInterface(a)
-print(test_interface.add_book("E"))
+print(test_interface.add_book("D"))
 print(test_interface.show_catalog())
 print(test_interface.show_any_book())
