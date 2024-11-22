@@ -53,7 +53,8 @@ class LibraryCatalog(object):
         return self.get_catalog()[self.current-1]
         
     def add_book(self, book: Book) -> bool:
-        pass
+        self.catalog.append(book)
+        return True
 
 #Adapter
 class DataAdapter:
@@ -118,12 +119,30 @@ class UserFactory:
 
 
 #Facade
-
+class ActionInterface:
+    def __init__(self, catalog: LibraryCatalog):
+        self.catalog = catalog
+        
+    def add_book(self, book):
+        return self.catalog.add_book(book)
+        
+    def show_catalog(self):
+        return self.catalog.get_catalog()
+    
+    def show_any_book(self):
+        return self.catalog.get_next()
+        
+    def borrow_book(self):
+        pass
+    
+    def return_book(self):
+        pass
 
 #Observer
 
 
 a = LibraryCatalog()
+a.add_book("D")
 print(a.get_catalog())
 b = LibraryCatalog()
 print(a is b)
@@ -140,3 +159,7 @@ try:
     error_class = UserFactory.create_user(User, "A")
 except Exception as e:
     print(e)
+test_interface = ActionInterface(a)
+print(test_interface.add_book("E"))
+print(test_interface.show_catalog())
+print(test_interface.show_any_book())
