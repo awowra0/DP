@@ -137,6 +137,18 @@ class LibraryCatalog(object):
                 return -2
         #This book is not in catalog
         return -3
+        
+    def update_borrow(self, user: User, identify: int) -> int:
+        for i in user.books:
+            if i[0].identify == identify:
+                if i[1] == "Ordered":
+                    #User took the book
+                    i[1] = "Borrowed"
+                    return 1
+                #Book is not ordered (it is probably taken already)
+                return -1
+        #User does not have this book in list
+        return -2
 
 #Adapter
 class DataAdapter:
@@ -177,6 +189,10 @@ class ActionInterface:
     def return_book(self, user: User, identify: int) -> int:
         return self.catalog.return_book(user, identify)
 
+    def update_borrow(self, user: User, identify: int) -> int:
+        return self.catalog.update_borrow(user, identify)
+
+
 #Observer
 
 
@@ -210,4 +226,8 @@ print(f"Called Facade show_any_book(): {test_interface.show_any_book()}")
 test_user = UserFactory.create_user("student", "XYZ")
 print(f"Called Facade borrow_book: {test_interface.borrow_book(test_user, 3)}")
 print(f"Called Facade borrow_book again: {test_interface.borrow_book(test_user, 3)}")
+print(f"Checked user books: {test_user.books}")
+print(f"Called Facade update_borrow(): {test_interface.update_borrow(test_user, 3)}")
+print(f"Checked user books: {test_user.books}")
 print(f"Called Facade return_book: {test_interface.return_book(test_user, 3)}")
+print(f"Checked user books: {test_user.books}")
