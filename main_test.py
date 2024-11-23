@@ -30,6 +30,7 @@ class Tester():
         self.test_17_observers_deattach()
         self.test_18_adapter_xml()
         self.test_19_adapter_csv()
+        self.test_20_adapter_json()
         print("Tests finished.")
 
     def test_1_add_book(self):
@@ -190,6 +191,30 @@ H,7,2002""")
         got = len(self.cat.get_catalog())
         assert (expect == got)
         print(f"Test 19 - csv adapter")
+
+    def test_20_adapter_json(self):
+        expect = 9
+        f = open("test_json.json", "w")
+        f.write("""{
+  "books": [
+    {
+      "name": "I",
+      "id": 8,
+      "year": 2016
+    },
+    {
+      "name": "H",
+      "id": 7,
+      "year": 2002
+    }
+  ]
+}""")
+        f.close()
+        self.adapter.read(self.cat, "test_json.json")
+        os.remove("test_json.json")
+        got = len(self.cat.get_catalog())
+        assert (expect == got)
+        print(f"Test 20 - json adapter")
 
 
 if __name__ == "__main__":
