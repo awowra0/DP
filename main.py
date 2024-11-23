@@ -93,6 +93,60 @@ class Librarian(User):
         self.books = []
 
 
+#Observer
+class Observer:
+    def __init__(self, user: User, book: Book):
+        self.user = user
+        self.books = [book]
+        self.infos = []
+    
+    def update(self, text: str) -> str:
+        self.infos.append(text)
+        return text
+
+class ObserverManager:
+    def __init__(self):
+        self.observers = []
+    
+    def attach(self, user: User, book: Book) -> int:
+        for i in self.observers:
+            if i.user.name == user.name:
+                for j in i.books:
+                    if j.identify == book.identify:
+                        i.update(f"User: {i.user.name} already wishlisted book {book}.")
+                        return -1
+                i.books.append(book)
+                i.update(f"User: {i.user.name} added book {book} to wishlist.")
+                return 0
+        self.observers.append(Observer(user, book))
+        self.observers[-1].update(f"User {self.observers[-1].user.name} wishlisted book {book}.")
+        return 1
+    
+    def deattach(self, user: User, book: Book) -> 1:
+        for i in self.observers:
+            if i.user.name == user.name:
+                if len(user.books) < 1:
+                    #User has no book in wishlist
+                    return 0
+                for j in i.books:
+                    if j.identify == book.identify:
+                        #remove book from wishlist
+                        i.books.remove(j)
+                        return 1
+                #Book not found in wishlist
+                return -1
+        #Observer not found
+        return -2
+    
+    def notify(self, book):
+        for i in self.observers:
+            for j in i.books:
+                if j.identify == book.identify:
+                    #Inform observer
+                    i.update(f"User {i.user.name} - book {book} is available.")
+                    break
+
+
 #Singleton + Iterator
 class LibraryCatalog(object):
     """
@@ -112,9 +166,9 @@ class LibraryCatalog(object):
     get_catalog() -> dict: Returns full catalog.
     get_next() -> str: Returns next book in catalog.
     add_book(book: Book) -> int: Adds book to catalog. Increases count and returns 1 if book already exists, otherwise returns 2.
-    borrow_book(user: User, identify: int) -> int: Tries to find a book by its ID and declare one of copies as ordered by user. Decreases book count and returns 1 if user has not reached book limit and book is available, 0 if book is unavailable right now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does not exist.
-    return_book(user: User, identify: int) -> int: Tries to find a book by its ID and return it to library. Increases book count, removes it from user's list and returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if user has not borrowed this book or -3 if the book does not exist.
-    update_borrow(user: User, identify: int) -> int: Tries to update book's status in user's list from "Ordered" to "Borrowed". Changes status and returns 1 if user has this book and it is "Ordered", -1 if the book is not "Ordered" or -2 if user does not have this book in its list.
+    borrow_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a book by its ID and declare one of copies as ordered by user. Decreases book count and returns 1 if user has not reached book limit and book is available, 0 if book is unavailable right now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does not exist. Informs ObserverManager to notify users.
+    return_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a book by its ID and return it to library. Increases book count, removes it from user's list and returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if user has not borrowed this book or -3 if the book does not exist. Informs ObserverManager to notify users.
+    update_borrow(user: User, identify: int) -> int: Tries to update book's status in user's list from "Ordered" to "Borrowed". Changes status and returns 1 if user has this book and it is "Ordered", -1 if the book is not "Ordered" or -2 if user does not have this book in its list. 
     
     Notes:
     Why Singleton? Library needs only one catalog for books. Creating second one may make a mess with searching in two catalog and this would be troublesome.
@@ -150,7 +204,7 @@ class LibraryCatalog(object):
             self.catalog[book] = [1, 1]
             return 2
         
-    def borrow_book(self, user: User, identify: int) -> int:
+    def borrow_book(self, user: User, identify: int, manager: ObserverManager) -> int:
         if user.limit <= len(user.books):
             #Max book limit reached
             return -1
@@ -162,17 +216,18 @@ class LibraryCatalog(object):
                         return -2
                 if self.catalog[i][0] < 1:
                     #Book unavailable right now, add user to observers
-                    #Observer code
+                    manager.attach(user, i)
                     return 0
                 else:
                     #Give book to user's list as ordered (not taken yet)
                     user.books.append([i, "Ordered"])
                     self.catalog[i][0] -= 1
+                    manager.deattach(user, i)
                     return 1
         #This book is not in catalog
         return -3
             
-    def return_book(self, user:User, identify: int) -> int:
+    def return_book(self, user:User, identify: int, manager: ObserverManager) -> int:
         if len(user.books) < 1:
             #What does user want to return?
             return -1
@@ -183,6 +238,9 @@ class LibraryCatalog(object):
                         #Everything is in order
                         user.books.remove(j)
                         self.catalog[i][0] += 1
+                        if self.catalog[i][0] == 1:
+                            #Book is available, inform observers
+                            manager.notify(i)
                         return 1
                 #User did not borrow this book
                 return -2
@@ -241,12 +299,13 @@ class ActionInterface:
     get_catalog() -> dict: Returns full catalog.
     get_next() -> str: Returns next book in catalog.
     add_book(book: Book) -> int: Adds book to catalog. Increases count and returns 1 if book already exists, otherwise returns 2.
-    borrow_book(user: User, identify: int) -> int: Tries to find a book by its ID and declare one of copies as ordered by user. Decreases book count and returns 1 if user has not reached book limit and book is available, 0 if book is unavailable right now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does not exist.
-    return_book(user: User, identify: int) -> int: Tries to find a book by its ID and return it to library. Increases book count, removes it from user's list and returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if user has not borrowed this book or -3 if the book does not exist.
+    borrow_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a book by its ID and declare one of copies as ordered by user. Decreases book count and returns 1 if user has not reached book limit and book is available, 0 if book is unavailable right now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does not exist. Informs ObserverManager to notify users.
+    return_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a book by its ID and return it to library. Increases book count, removes it from user's list and returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if user has not borrowed this book or -3 if the book does not exist. Informs ObserverManager to notify users.
     update_borrow(user: User, identify: int) -> int: Tries to update book's status in user's list from "Ordered" to "Borrowed". Changes status and returns 1 if user has this book and it is "Ordered", -1 if the book is not "Ordered" or -2 if user does not have this book in its list.
     """
-    def __init__(self, catalog: LibraryCatalog):
+    def __init__(self, catalog: LibraryCatalog, manager: ObserverManager):
         self.catalog = catalog
+        self.manager = manager
         
     def add_book(self, book: Book) -> bool:
         return self.catalog.add_book(book)
@@ -258,16 +317,16 @@ class ActionInterface:
         return self.catalog.get_next()
         
     def borrow_book(self, user: User, identify: int) -> int:
-        return self.catalog.borrow_book(user, identify)
+        return self.catalog.borrow_book(user, identify, self.manager)
     
     def return_book(self, user: User, identify: int) -> int:
-        return self.catalog.return_book(user, identify)
+        return self.catalog.return_book(user, identify, self.manager)
 
     def update_borrow(self, user: User, identify: int) -> int:
         return self.catalog.update_borrow(user, identify)
 
 
-#Observer
+
 
 
 a = LibraryCatalog()
@@ -292,7 +351,8 @@ try:
     error_class = UserFactory.create_user("user", "A")
 except Exception as e:
     print(e)
-test_interface = ActionInterface(a)
+test_manager = ObserverManager()
+test_interface = ActionInterface(a, test_manager)
 print(f"Called Facade add_book(): {test_interface.add_book(Book('D', 3, 2020))}")
 print(f"Called Facade show_catalog(): {test_interface.show_catalog()}")
 print(f"Called Facade show_any_book(): {test_interface.show_any_book()}")
@@ -305,3 +365,12 @@ print(f"Called Facade update_borrow(): {test_interface.update_borrow(test_user, 
 print(f"Checked user books: {test_user.books}")
 print(f"Called Facade return_book: {test_interface.return_book(test_user, 3)}")
 print(f"Checked user books: {test_user.books}")
+print(f"Checked observers (should be empty): {test_interface.manager.observers}")
+test_user_b = UserFactory.create_user("teacher", "TUVW")
+print(f"Called Facade borrow_book: {test_interface.borrow_book(test_user, 1)}")
+print(f"Called Facade borrow_book for unavailable book: {test_interface.borrow_book(test_user_b, 1)}")
+try:
+    print(f"Checked observers (should not be empty): {len(test_interface.manager.observers)}")
+    print(f"Checked last observer's notifications: {test_interface.manager.observers[-1].infos}")
+except Exception as e:
+    print(f"Observer test failed: {e}")
