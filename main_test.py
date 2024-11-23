@@ -29,6 +29,7 @@ class Tester():
         self.test_16_observers_notify()
         self.test_17_observers_deattach()
         self.test_18_adapter_xml()
+        self.test_19_adapter_csv()
         print("Tests finished.")
 
     def test_1_add_book(self):
@@ -176,6 +177,19 @@ class Tester():
         got = len(self.cat.get_catalog())
         assert (expect == got)
         print(f"Test 18 - xml adapter")
+
+    def test_19_adapter_csv(self):
+        expect = 8
+        f = open("test_csv.csv", "w")
+        f.write("""name,id,year
+G,6,2012
+H,7,2002""")
+        f.close()
+        self.adapter.read(self.cat, "test_csv.csv")
+        os.remove("test_csv.csv")
+        got = len(self.cat.get_catalog())
+        assert (expect == got)
+        print(f"Test 19 - csv adapter")
 
 
 if __name__ == "__main__":

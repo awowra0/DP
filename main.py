@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import csv
 
 
 class Book:
@@ -298,8 +299,9 @@ class DataAdapter:
     Class representing Adapter design pattern. Adds books to catalog from given file.
 
     Methods:
-    read (catalog: LibraryCatalog, filename: str) -> int: Attempts to recognise file type and send it to proper reader fuction. Returns 1/0 if it is xml and made no/any mistake or return -1 if file type is unknown.
+    read (catalog: LibraryCatalog, filename: str) -> int: Attempts to recognise file type and send it to proper reader fuction. Returns 1/0 if it is xml and made no/any mistake, returns 6/5 if it is csv and made no/any mistake or return -1 if file type is unknown.
     read_xml (catalog: LibraryCatalog, filename: str) -> int: Reads xml file and tries to add found books to catalog. Returns 1 if no mistake made or 0 otherwise.
+    read_csv (catalog: LibraryCatalog, filename: str) -> int: Reads csv file and tries to add found books to catalog. Returns 6 if no mistake made or 5 otherwise.
 
     Notes:
     Why Adapter? It allows to accomodate to various circumstates. Instead of creating one big confusing method that parses everything, adapter divides problem by creating one switch-case problem that sends arguments to proper subfunction and does its job smoothly. And it can be easily developed further.
@@ -307,6 +309,8 @@ class DataAdapter:
     def read(self, catalog: LibraryCatalog, filename: str):
         if filename.endswith(".xml"):
             return self.read_xml(catalog, filename)
+        elif filename.endswith(".csv"):
+            return self.read_csv(catalog, filename)
         return -1
 
     def read_xml(self, catalog: LibraryCatalog, filename: str):
@@ -324,6 +328,19 @@ class DataAdapter:
         if mistakes < 1:
             return 0
         return 1
+
+    def read_csv(self, catalog: LibraryCatalog, filename: str):
+        mistakes = 0
+        with open(filename, mode="r") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                try:
+                    catalog.add_book(Book(row["name"], row["id"], row["year"]))
+                except:
+                    mistakes += 1
+        if mistakes < 1:
+            return 6
+        return 5
 
 
 # Factory
