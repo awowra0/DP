@@ -1,3 +1,6 @@
+import xml.etree.ElementTree as ET
+
+
 class Book:
     """
     Class representing book.
@@ -291,8 +294,36 @@ class LibraryCatalog(object):
 
 # Adapter
 class DataAdapter:
-    def read():
-        pass
+    """
+    Class representing Adapter design pattern. Adds books to catalog from given file.
+
+    Methods:
+    read (catalog: LibraryCatalog, filename: str) -> int: Attempts to recognise file type and send it to proper reader fuction. Returns 1/0 if it is xml and made no/any mistake or return -1 if file type is unknown.
+    read_xml (catalog: LibraryCatalog, filename: str) -> int: Reads xml file and tries to add found books to catalog. Returns 1 if no mistake made or 0 otherwise.
+
+    Notes:
+    Why Adapter? It allows to accomodate to various circumstates. Instead of creating one big confusing method that parses everything, adapter divides problem by creating one switch-case problem that sends arguments to proper subfunction and does its job smoothly. And it can be easily developed further.
+    """ 
+    def read(self, catalog: LibraryCatalog, filename: str):
+        if filename.endswith(".xml"):
+            return self.read_xml(catalog, filename)
+        return -1
+
+    def read_xml(self, catalog: LibraryCatalog, filename: str):
+        tree = ET.parse(filename)
+        root = tree.getroot()
+        mistakes = 0
+        for book in root.findall("book"):
+            try:
+                name = book.find("name").text
+                identify = int(book.find("id").text)
+                year = int(book.find("year").text)
+                catalog.add_book(Book(name, identify, year))
+            except:
+                mistakes += 1
+        if mistakes < 1:
+            return 0
+        return 1
 
 
 # Factory

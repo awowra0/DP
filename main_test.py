@@ -1,4 +1,5 @@
 from main import *
+import os
 
 
 class Tester():
@@ -7,6 +8,7 @@ class Tester():
         self.users = []
         self.manager = ObserverManager()
         self.interface = ActionInterface(self.cat, self.manager)
+        self.adapter = DataAdapter()
 
     def start_tests(self):
         self.test_1_add_book()
@@ -26,6 +28,7 @@ class Tester():
         self.test_15_observers_attach()
         self.test_16_observers_notify()
         self.test_17_observers_deattach()
+        self.test_18_adapter_xml()
         print("Tests finished.")
 
     def test_1_add_book(self):
@@ -150,6 +153,29 @@ class Tester():
         got = self.interface.manager.observers[-1].books
         assert (expect == got)
         print(f"Test 17 - observer deattached - borrowed book")
+
+    def test_18_adapter_xml(self):
+        expect = 6
+        f = open("test_xml.xml", "w")
+        f.write("""<?xml version="1.0"?>
+    <data>
+        <book>
+            <name>E</name>
+            <id>4</id>
+            <year>1999</year>
+        </book>
+        <book>
+            <name>F</name>
+            <id>5</id>
+            <year>2009</year>
+        </book>
+    </data>""")
+        f.close()
+        self.adapter.read(self.cat, "test_xml.xml")
+        os.remove("test_xml.xml")
+        got = len(self.cat.get_catalog())
+        assert (expect == got)
+        print(f"Test 18 - xml adapter")
 
 
 if __name__ == "__main__":
