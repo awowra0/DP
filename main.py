@@ -305,7 +305,7 @@ class DataAdapter:
 
     Notes:
     Why Adapter? It allows to accomodate to various circumstates. Instead of creating one big confusing method that parses everything, adapter divides problem by creating one switch-case problem that sends arguments to proper subfunction and does its job smoothly. And it can be easily developed further.
-    """ 
+    """
     def read(self, catalog: LibraryCatalog, filename: str):
         if filename.endswith(".xml"):
             return self.read_xml(catalog, filename)
@@ -323,7 +323,7 @@ class DataAdapter:
                 identify = int(book.find("id").text)
                 year = int(book.find("year").text)
                 catalog.add_book(Book(name, identify, year))
-            except:
+            except Exception:
                 mistakes += 1
         if mistakes < 1:
             return 0
@@ -336,7 +336,7 @@ class DataAdapter:
             for row in reader:
                 try:
                     catalog.add_book(Book(row["name"], row["id"], row["year"]))
-                except:
+                except Exception:
                     mistakes += 1
         if mistakes < 1:
             return 6
