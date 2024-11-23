@@ -95,6 +95,21 @@ class Librarian(User):
 
 #Observer
 class Observer:
+    """
+    Class representing Observer design pattern.
+    
+    Constructor parameters:
+    user (User): Reference to user who awaits book.
+    book (Book): Observed book.
+    
+    Parameters:
+    user (User): Reference to user who awaits book.
+    books (list(Book)): List of observed books.
+    infos (list(str)): A list of notification sent to user.
+    
+    Methods:
+    update(text: str) -> str: Adds new notification. 
+    """
     def __init__(self, user: User, book: Book):
         self.user = user
         self.books = [book]
@@ -105,6 +120,20 @@ class Observer:
         return text
 
 class ObserverManager:
+    """
+    Class representing manager for Observer design pattern.
+    
+    Parameters:
+    observers (list(Observer)): List of observers.
+    
+    Methods:
+    attach(user: User, book: Book) -> int: Tries to create a new observer from given user and book. Adds new observer and returns 1 if user is not an observer, adds new book to observer's list and returns 0 if user is one or returns -1 if user has already been waiting for this book.
+    deattach(user: User, book: Book) -> int: Tries to remove book from user's observer instance. Removes this book and returns 1 if the book is in observer's list, return 0 if observer has no book in list, returns -1 if book is not in observer's list or returns -2 if given user is not an observer.
+    notify(book: Book): Notifies proper observers that their book is currently available.
+    
+    Notes:
+    Why Observer? It gives an opportunity to create an automated system that sends information about books to interested users as soon as possible.
+    """
     def __init__(self):
         self.observers = []
     
@@ -292,8 +321,13 @@ class ActionInterface:
     """
     Class implementing Facade design pattern to show available commands as simple 'interface'.
     
+    Constructor parameters:
+    catalog (LibraryCatalog): Catalog that does every method presented by interface.
+    manager (ObserverManager): Manager for Observers awaiting for books.
+    
     Parameters:
     catalog (LibraryCatalog): Catalog that does every method presented by interface.
+    manager (ObserverManager): Manager for Observers awaiting for books.
     
     Methods:
     get_catalog() -> dict: Returns full catalog.
@@ -302,6 +336,8 @@ class ActionInterface:
     borrow_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a book by its ID and declare one of copies as ordered by user. Decreases book count and returns 1 if user has not reached book limit and book is available, 0 if book is unavailable right now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does not exist. Informs ObserverManager to notify users.
     return_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a book by its ID and return it to library. Increases book count, removes it from user's list and returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if user has not borrowed this book or -3 if the book does not exist. Informs ObserverManager to notify users.
     update_borrow(user: User, identify: int) -> int: Tries to update book's status in user's list from "Ordered" to "Borrowed". Changes status and returns 1 if user has this book and it is "Ordered", -1 if the book is not "Ordered" or -2 if user does not have this book in its list.
+    
+    Why Facade? It allows to show available commands that are located in more advanced and complicated class. Here everything looks better and complex processing is hidden from view.
     """
     def __init__(self, catalog: LibraryCatalog, manager: ObserverManager):
         self.catalog = catalog
