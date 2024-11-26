@@ -4,6 +4,7 @@ File containing classes representing various design patterns for library system.
 import xml.etree.ElementTree as ET
 import csv
 import json
+import abc
 
 
 class Book:
@@ -28,7 +29,7 @@ class Book:
 
 
 # Classes for Factory
-class User:
+class User(abc.ABC):
     """
     Abstract class representing user. Do not use it directly.
 
@@ -44,11 +45,12 @@ class User:
      - get_limit -> int: Returns book limit.
      - get_name -> str: Returns user's name.
     """
+    @abc.abstractmethod
     def __init__(self, name: str):
         self.name = name
         self.limit = 0
         self.books = []
-        raise NotImplementedError("User is supposed to be an abstract class")
+        #raise NotImplementedError("User is supposed to be an abstract class")
 
     def get_limit(self) -> int:
         """
@@ -269,12 +271,13 @@ class LibraryCatalog:
     can be confusing. By showing one book lineally, user can look at different book every time if 
     catalog is big enough.
     """
-    def __new__(self):
-        if not hasattr(self, "instance"):
-            self.instance = super(LibraryCatalog, self).__new__(self)
-            self.catalog = {}
-            self.current = 0
-        return self.instance
+    def __new__(cls):
+        if not hasattr(cls, "instance"):
+            cls.instance = super(LibraryCatalog, cls).__new__(cls)
+            cls.catalog = {}
+            cls.current = 0
+        return cls.instance
+
 
     def get_catalog(self) -> dict:
         """
@@ -430,7 +433,7 @@ class DataAdapter:
         Adds books to catalog from csv file.
         """
         mistakes = 0
-        with open(filename, mode="r") as csvfile:
+        with open(filename, mode="r", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 try:
@@ -446,7 +449,7 @@ class DataAdapter:
         Adds books to catalog from json file.
         """
         mistakes = 0
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding="utf-8") as f:
             json_data = json.load(f)
             for book in json_data["books"]:
                 try:
