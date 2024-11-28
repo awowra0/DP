@@ -40,7 +40,7 @@ class User(abc.ABC):
     Parameters:
      - name (str): User name.
      - limit (int): Book limit.
-     - books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
+     - books (list(list(Book, str))): List containing books and their statuses - "Ordered" or "Borrowed"
 
     Methods:
      - get_limit -> int: Returns book limit.
@@ -51,7 +51,7 @@ class User(abc.ABC):
     def __init__(self, name: str):
         self.name = name
         self.limit = 0
-        self.books: list[list[Book, str]] = []
+        self.books: list[list[Book]] = []
         # raise NotImplementedError("User is supposed to be an abstract class")
 
     def get_limit(self) -> int:
