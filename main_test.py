@@ -3,14 +3,13 @@ Test file for main.py; use with pytest.
 """
 import os
 from main import (
+    ActionInterface,
+    Book,
+    DataAdapter,
     LibraryCatalog,
     ObserverManager,
-    ActionInterface,
-    DataAdapter,
-    Book,
     UserFactory,
 )
-
 
 cat = LibraryCatalog()
 users = []

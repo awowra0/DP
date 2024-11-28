@@ -51,7 +51,7 @@ class User(abc.ABC):
     def __init__(self, name: str):
         self.name = name
         self.limit = 0
-        self.books: list[Book, str] = []
+        self.books: list[list[Book, str]] = []
         # raise NotImplementedError("User is supposed to be an abstract class")
 
     def get_limit(self) -> int:
@@ -428,10 +428,11 @@ class DataAdapter:
         mistakes = 0
         for book in root.findall("book"):
             try:
-                name = book.findtext("name")
-                identify = book.get("id")
-                year = book.get("year")
-                catalog.add_book(Book(name, identify, year))
+                book_str = ET.tostring(book)
+                name = book_str.split(b"<name>")[1].split(b"</name>")[0].decode()
+                identify = book_str.split(b"<id>")[1].split(b"</id>")[0].decode()
+                year = book_str.split(b"<year>")[1].split(b"</year>")[0].decode()
+                catalog.add_book(Book(name, int(identify), int(year)))
             except (TypeError, IndexError):
                 mistakes += 1
         if mistakes < 1:
