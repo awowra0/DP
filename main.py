@@ -1,10 +1,10 @@
 """
 File containing classes representing various design patterns for library system.
 """
-import xml.etree.ElementTree as ET
+import abc
 import csv
 import json
-import abc
+import xml.etree.ElementTree as ET
 
 
 class Book:
@@ -16,6 +16,7 @@ class Book:
      - identify (int): Book ID.
      - year (int): Book year publication.
     """
+
     def __init__(self, name: str, identify: int, year: int):
         self.name = name
         self.identify = identify
@@ -45,12 +46,13 @@ class User(abc.ABC):
      - get_limit -> int: Returns book limit.
      - get_name -> str: Returns user's name.
     """
+
     @abc.abstractmethod
     def __init__(self, name: str):
         self.name = name
         self.limit = 0
-        self.books = []
-        #raise NotImplementedError("User is supposed to be an abstract class")
+        self.books: list(Book, str) = []
+        # raise NotImplementedError("User is supposed to be an abstract class")
 
     def get_limit(self) -> int:
         """
@@ -77,6 +79,7 @@ class Student(User):
      - limit (int): Book limit.
      - books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
     """
+
     def __init__(self, name: str):
         self.name = name
         self.limit = 5
@@ -95,6 +98,7 @@ class Teacher(User):
      - limit (int): Book limit.
      - books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
     """
+
     def __init__(self, name: str):
         self.name = name
         self.limit = 15
@@ -113,6 +117,7 @@ class Librarian(User):
      - limit (int): Book limit.
      - books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
     """
+
     def __init__(self, name: str):
         self.name = name
         self.limit = 25
@@ -137,10 +142,11 @@ class Observer:
      - update(text: str) -> str: Adds new notification.
      - get_infos() -> list: Returns all notifications.
     """
+
     def __init__(self, user: User, book: Book):
         self.user = user
         self.books = [book]
-        self.infos = []
+        self.infos: list(str) = []
 
     def update(self, text: str) -> str:
         """
@@ -164,19 +170,20 @@ class ObserverManager:
      - observers (list(Observer)): List of observers.
 
     Methods:
-     - attach(user: User, book: Book) -> int: Tries to create a new observer from given user and 
-    book. Adds new observer and returns 1 if user is not an observer, adds new book to observer's 
+     - attach(user: User, book: Book) -> int: Tries to create a new observer from given user and
+    book. Adds new observer and returns 1 if user is not an observer, adds new book to observer's
     list and returns 0 if user is one or returns -1 if user has already been waiting for this book.
-     - deattach(user: User, book: Book) -> int: Tries to remove book from user's observer instance. 
-    Removes this book and returns 1 if the book is in observer's list, return 0 if observer has no 
-    book in list, returns -1 if book is not in observer's list or returns -2 if given user is not 
+     - deattach(user: User, book: Book) -> int: Tries to remove book from user's observer instance.
+    Removes this book and returns 1 if the book is in observer's list, return 0 if observer has no
+    book in list, returns -1 if book is not in observer's list or returns -2 if given user is not
     observer.
      - notify(book: Book): Notifies proper observers that their book is currently available.
 
     Notes:
-     * Why Observer? It gives an opportunity to create an automated system that sends information 
+     * Why Observer? It gives an opportunity to create an automated system that sends information
     about books to interested users as soon as possible.
     """
+
     def __init__(self):
         self.observers = []
 
@@ -194,7 +201,9 @@ class ObserverManager:
                 i.update(f"User: {i.user.name} added book {book} to wishlist.")
                 return 0
         self.observers.append(Observer(user, book))
-        self.observers[-1].update(f"User {self.observers[-1].user.name} wishlisted book {book}.")
+        self.observers[-1].update(
+            f"User {self.observers[-1].user.name} wishlisted book {book}."
+        )
         return 1
 
     def deattach(self, user: User, book: Book) -> 1:
@@ -232,7 +241,7 @@ class ObserverManager:
 class LibraryCatalog:
     """
     Class representing book catalog in library.
-    It uses Singleton pattern design (one catalog is enough) 
+    It uses Singleton pattern design (one catalog is enough)
     and Iterator (to show next books in catalog).
 
     Constructor parameters:
@@ -240,44 +249,44 @@ class LibraryCatalog:
 
     Parameters:
      - instance (LibraryCatalog): Singleton instance.
-     - catalog (dict(Book: list(int, int))): Dictionary with books in catalog, their available 
+     - catalog (dict(Book: list(int, int))): Dictionary with books in catalog, their available
     count and total count.
      - current (int): Index used for Iterator design pattern in get_next() method.
 
     Methods:
      - get_catalog() -> dict: Returns full catalog.
      - get_next() -> str: Returns next book in catalog.
-     - add_book(book: Book) -> int: Adds book to catalog. Increases count and returns 1 if book 
+     - add_book(book: Book) -> int: Adds book to catalog. Increases count and returns 1 if book
     already exists, otherwise returns 2.
-     - borrow_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a 
-    book by its ID and declare one of copies as ordered by user. Decreases book count and returns 
-    1 if user has not reached book limit and book is available, 0 if book is unavailable right 
-    now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does 
+     - borrow_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a
+    book by its ID and declare one of copies as ordered by user. Decreases book count and returns
+    1 if user has not reached book limit and book is available, 0 if book is unavailable right
+    now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does
     not exist. Informs ObserverManager to notify users.
-     - return_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a 
-    book by its ID and return it to library. Increases book count, removes it from user's list and 
-    returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if user has 
-    not borrowed this book or -3 if the book does not exist. Informs ObserverManager to notify 
+     - return_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a
+    book by its ID and return it to library. Increases book count, removes it from user's list and
+    returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if user has
+    not borrowed this book or -3 if the book does not exist. Informs ObserverManager to notify
     users.
-     - update_borrow(user: User, identify: int) -> int: Tries to update book's status in user's 
-    list from "Ordered" to "Borrowed". Changes status and returns 1 if user has this book and it 
-    is "Ordered", -1 if the book is not "Ordered" or -2 if user does not have this book in its 
+     - update_borrow(user: User, identify: int) -> int: Tries to update book's status in user's
+    list from "Ordered" to "Borrowed". Changes status and returns 1 if user has this book and it
+    is "Ordered", -1 if the book is not "Ordered" or -2 if user does not have this book in its
     list.
 
     Notes:
-     * Why Singleton? Library needs only one catalog for books. Creating second one may make a 
+     * Why Singleton? Library needs only one catalog for books. Creating second one may make a
     mess with searching in two catalog and this would be troublesome.
-     * Why Iterator? Catalog may become very big in time and looking at dictionary of all books 
-    can be confusing. By showing one book lineally, user can look at different book every time if 
+     * Why Iterator? Catalog may become very big in time and looking at dictionary of all books
+    can be confusing. By showing one book lineally, user can look at different book every time if
     catalog is big enough.
     """
+
     def __new__(cls):
         if not hasattr(cls, "instance"):
             cls.instance = super(LibraryCatalog, cls).__new__(cls)
             cls.catalog = {}
             cls.current = 0
         return cls.instance
-
 
     def get_catalog(self) -> dict:
         """
@@ -286,16 +295,16 @@ class LibraryCatalog:
         return self.catalog
 
     # Iterator
-    def get_next(self) -> Book:
+    def get_next(self) -> str:
         """
         Shows one book from catalog.
         """
         if len(self.get_catalog()) < 1:
-            return None
+            return "No books in catalog."
         if self.current == len(self.get_catalog()):
             self.current = 0
         self.current += 1
-        book_key = list(self.get_catalog().keys())[self.current-1]
+        book_key = list(self.get_catalog().keys())[self.current - 1]
         return f"{book_key}, count: {self.catalog[book_key][0]}/{self.catalog[book_key][1]}"
 
     def add_book(self, book: Book) -> int:
@@ -380,23 +389,24 @@ class DataAdapter:
     Class representing Adapter design pattern. Adds books to catalog from given file.
 
     Methods:
-     - read (catalog: LibraryCatalog, filename: str) -> int: Attempts to recognise file type and 
-    send it to proper reader fuction. Returns 1/0 if it is xml and made no/any mistake, returns 
-    6/5 if it is csv and made no/any mistake, returns 11/10 if it is json and made no/any mistake 
+     - read (catalog: LibraryCatalog, filename: str) -> int: Attempts to recognise file type and
+    send it to proper reader fuction. Returns 1/0 if it is xml and made no/any mistake, returns
+    6/5 if it is csv and made no/any mistake, returns 11/10 if it is json and made no/any mistake
     or return -1 if file type is unknown.
-     - read_xml (catalog: LibraryCatalog, filename: str) -> int: Reads xml file and tries to add 
+     - read_xml (catalog: LibraryCatalog, filename: str) -> int: Reads xml file and tries to add
     found books to catalog. Returns 1 if no mistake made or 0 otherwise.
-     - read_csv (catalog: LibraryCatalog, filename: str) -> int: Reads csv file and tries to add 
+     - read_csv (catalog: LibraryCatalog, filename: str) -> int: Reads csv file and tries to add
     found books to catalog. Returns 6 if no mistake made or 5 otherwise.
-     - read_json (catalog: LibraryCatalog, filename: str) -> int: Reads json file and tries to add 
+     - read_json (catalog: LibraryCatalog, filename: str) -> int: Reads json file and tries to add
     found books to catalog. Returns 11 if no mistake made or 10 otherwise.
 
     Notes:
-     * Why Adapter? It allows to accomodate to various circumstates. Instead of creating one big 
-    confusing method that parses everything, adapter divides problem by creating one switch-case 
-    problem that sends arguments to proper subfunction and does its job smoothly. And it can be 
+     * Why Adapter? It allows to accomodate to various circumstates. Instead of creating one big
+    confusing method that parses everything, adapter divides problem by creating one switch-case
+    problem that sends arguments to proper subfunction and does its job smoothly. And it can be
     easily developed further.
     """
+
     def read(self, catalog: LibraryCatalog, filename: str):
         """
         Tries to recognise file extension and read it.
@@ -418,9 +428,9 @@ class DataAdapter:
         mistakes = 0
         for book in root.findall("book"):
             try:
-                name = book.find("name").text
-                identify = int(book.find("id").text)
-                year = int(book.find("year").text)
+                name = book.findtext("name")
+                identify = book.get("id")
+                year = book.get("year")
                 catalog.add_book(Book(name, identify, year))
             except (TypeError, IndexError):
                 mistakes += 1
@@ -437,7 +447,9 @@ class DataAdapter:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 try:
-                    catalog.add_book(Book(row["name"], int(row["id"]), int(row["year"])))
+                    catalog.add_book(
+                        Book(row["name"], int(row["id"]), int(row["year"]))
+                    )
                 except (TypeError, IndexError):
                     mistakes += 1
         if mistakes < 1:
@@ -453,7 +465,9 @@ class DataAdapter:
             json_data = json.load(f)
             for book in json_data["books"]:
                 try:
-                    catalog.add_book(Book(book["name"], int(book["id"]), int(book["year"])))
+                    catalog.add_book(
+                        Book(book["name"], int(book["id"]), int(book["year"]))
+                    )
                 except (TypeError, IndexError):
                     mistakes += 1
         if mistakes < 1:
@@ -467,14 +481,15 @@ class UserFactory:
     Class implementing Factory design pattern to create new users.
 
     Methods:
-     - create_user(user: str, name: str) -> User: Tries to create a proper user class. Return 
+     - create_user(user: str, name: str) -> User: Tries to create a proper user class. Return
     Student, Teacher or Librarian class with chosen name or raises Error for different class names.
      - check_user_type(user: str) -> bool: Checks whether given user type is valid.
 
     Notes:
-     * Why Factory? It is a simple solution to create multiple various accounts. Now it is obvious 
+     * Why Factory? It is a simple solution to create multiple various accounts. Now it is obvious
     what classes are available plus method input can be universal.
     """
+
     def __init__(self):
         self.types = ["student", "teacher", "librarian"]
 
@@ -515,26 +530,28 @@ class ActionInterface:
     Methods:
      - get_catalog() -> dict: Returns full catalog.
      - get_next() -> str: Returns next book in catalog.
-     - add_book(book: Book) -> int: Adds book to catalog. Increases count and returns 1 if book 
+     - add_book(book: Book) -> int: Adds book to catalog. Increases count and returns 1 if book
     already exists, otherwise returns 2.
-     - borrow_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a 
-    book by its ID and declare one of copies as ordered by user. Decreases book count and returns 
-    1 if user has not reached book limit and book is available, 0 if book is unavailable right 
-    now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does 
+     - borrow_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a
+    book by its ID and declare one of copies as ordered by user. Decreases book count and returns
+    1 if user has not reached book limit and book is available, 0 if book is unavailable right
+    now, -1 if user reached book limit, -2 if user already ordered this book or -3 if book does
     not exist. Informs ObserverManager to notify users.
-     - return_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a  
-    book by its ID and return it to library. Increases book count, removes it from user's list 
-    and returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if 
-    user has not borrowed this book or -3 if the book does not exist. Informs ObserverManager to 
+     - return_book(user: User, identify: int, manager: ObserverManager) -> int: Tries to find a
+    book by its ID and return it to library. Increases book count, removes it from user's list
+    and returns 1 if the book exists and user has it, -1 if user has no book borrowed, -2 if
+    user has not borrowed this book or -3 if the book does not exist. Informs ObserverManager to
     notify users.
-     - update_borrow(user: User, identify: int) -> int: Tries to update book's status in user's 
-    list from "Ordered" to "Borrowed". Changes status and returns 1 if user has this book and it 
-    is "Ordered", -1 if the book is not "Ordered" or -2 if user does not have this book in its 
+     - update_borrow(user: User, identify: int) -> int: Tries to update book's status in user's
+    list from "Ordered" to "Borrowed". Changes status and returns 1 if user has this book and it
+    is "Ordered", -1 if the book is not "Ordered" or -2 if user does not have this book in its
     list.
 
-     * Why Facade? It allows to show available commands that are located in more advanced and 
+    Notes:
+     * Why Facade? It allows to show available commands that are located in more advanced and
     complicated class. Here everything looks better and complex processing is hidden from view.
     """
+
     def __init__(self, catalog: LibraryCatalog, manager: ObserverManager):
         self.catalog = catalog
         self.manager = manager

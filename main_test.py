@@ -2,8 +2,14 @@
 Test file for main.py; use with pytest.
 """
 import os
-from main import LibraryCatalog, ObserverManager, ActionInterface, \
-                 DataAdapter, Book, UserFactory
+from main import (
+    LibraryCatalog,
+    ObserverManager,
+    ActionInterface,
+    DataAdapter,
+    Book,
+    UserFactory
+)
 
 
 cat = LibraryCatalog()
@@ -18,12 +24,18 @@ class Tester:
     """
     Class running tests. Use with pytest.
     """
+
     def test_1_add_book(self):
         """
         Test 1.
         """
         expect = 2
-        for i in [Book("A", 0, 1999), Book("B", 1, 2002), Book("C", 2, 2004), Book("D", 3, 2020)]:
+        for i in [
+            Book("A", 0, 1999),
+            Book("B", 1, 2002),
+            Book("C", 2, 2004),
+            Book("D", 3, 2020)
+        ]:
             got = cat.add_book(i)
             assert expect == got
         print("Test 1 - added 4 books.")
@@ -81,24 +93,24 @@ class Tester:
         assert expect == got
         print("Test 6 - factory refused to create unknown user")
 
-#     def test_7_abstract_class(self):
-#         """
-#         Test 7.
-#         """
-#         expect = "Can't instantiate abstract class User with abstract method __init__"
-#         try:
-#             got = User("A")
-#         except TypeError as e:
-#             got = str(e)
-#         assert expect == got
-#         print("Test 7 - abstract class")
+    #     def test_7_abstract_class(self):
+    #         """
+    #         Test 7.
+    #         """
+    #         expect = "Can't instantiate abstract class User with abstract method __init__"
+    #         try:
+    #             got = User("A")
+    #         except TypeError as e:
+    #             got = str(e)
+    #         assert expect == got
+    #         print("Test 7 - abstract class")
 
     def test_8_facade_add_copy_book(self):
         """
         Test 8.
         """
         expect = 1
-        got = interface.add_book(Book('D', 3, 2020))
+        got = interface.add_book(Book("D", 3, 2020))
         assert expect == got
         print("Test 8 - facade book copy")
 
@@ -163,7 +175,7 @@ class Tester:
         """
         Test 15.
         """
-        expect = [0, 1, ['User BBB wishlisted book B, 2002, id 1.']]
+        expect = [0, 1, ["User BBB wishlisted book B, 2002, id 1."]]
         got = []
         interface.borrow_book(users[0], 1)
         got.append(interface.borrow_book(users[1], 1))
@@ -198,7 +210,8 @@ class Tester:
         """
         expect = 6
         with open("test_xml.xml", "w", encoding="utf-8") as f:
-            f.write("""<?xml version="1.0"?>
+            f.write(
+                """<?xml version="1.0"?>
     <data>
         <book>
             <name>E</name>
@@ -210,7 +223,8 @@ class Tester:
             <id>5</id>
             <year>2009</year>
         </book>
-    </data>""")
+    </data>"""
+            )
         adapter.read(cat, "test_xml.xml")
         os.remove("test_xml.xml")
         got = len(cat.get_catalog())
@@ -223,9 +237,11 @@ class Tester:
         """
         expect = 8
         with open("test_csv.csv", "w", encoding="utf-8") as f:
-            f.write("""name,id,year
+            f.write(
+                """name,id,year
 G,6,2012
-H,7,2002""")
+H,7,2002"""
+            )
         adapter.read(cat, "test_csv.csv")
         os.remove("test_csv.csv")
         got = len(cat.get_catalog())
@@ -238,7 +254,8 @@ H,7,2002""")
         """
         expect = 9
         with open("test_json.json", "w", encoding="utf-8") as f:
-            f.write("""{
+            f.write(
+                """{
   "books": [
     {
       "name": "I",
@@ -251,7 +268,8 @@ H,7,2002""")
       "year": 2002
     }
   ]
-}""")
+}"""
+            )
         f.close()
         adapter.read(cat, "test_json.json")
         os.remove("test_json.json")
