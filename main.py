@@ -52,7 +52,7 @@ class User(abc.ABC):
     def __init__(self, name: str):
         self.name = name
         self.limit = 0
-        self.books = {}
+        self.books: dict[Book, str] = {}
         # raise NotImplementedError("User is supposed to be an abstract class")
 
     def get_limit(self) -> int:
