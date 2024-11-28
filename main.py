@@ -40,7 +40,8 @@ class User(abc.ABC):
     Parameters:
      - name (str): User name.
      - limit (int): Book limit.
-     - books (list(list(Book, str))): List containing books and their statuses - "Ordered" or "Borrowed"
+     - books (dict(Book: str))): Dictionary containing books and their statuses - "Ordered" or
+     "Borrowed"
 
     Methods:
      - get_limit -> int: Returns book limit.
@@ -51,7 +52,7 @@ class User(abc.ABC):
     def __init__(self, name: str):
         self.name = name
         self.limit = 0
-        self.books: list[list[Book]] = []
+        self.books = {}
         # raise NotImplementedError("User is supposed to be an abstract class")
 
     def get_limit(self) -> int:
@@ -77,13 +78,14 @@ class Student(User):
     Parameters:
      - name (str): User name.
      - limit (int): Book limit.
-     - books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
+     - books (dict(Book: str))): Dictionary containing books and their statuses - "Ordered" or
+    "Borrowed"
     """
 
     def __init__(self, name: str):
         self.name = name
         self.limit = 5
-        self.books = []
+        self.books = {}
 
 
 class Teacher(User):
@@ -96,13 +98,14 @@ class Teacher(User):
     Parameters:
      - name (str): User name.
      - limit (int): Book limit.
-     - books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
+     - books (dict(Book: str))): Dictionary containing books and their statuses - "Ordered" or
+    "Borrowed"
     """
 
     def __init__(self, name: str):
         self.name = name
         self.limit = 15
-        self.books = []
+        self.books = {}
 
 
 class Librarian(User):
@@ -115,13 +118,14 @@ class Librarian(User):
     Parameters:
      - name (str): User name.
      - limit (int): Book limit.
-     - books (list(Book, str)): List containing books and their statuses - "Ordered" or "Borrowed"
+     - books (dict(Book: str))): Dictionary containing books and their statuses - "Ordered" or
+    "Borrowed"
     """
 
     def __init__(self, name: str):
         self.name = name
         self.limit = 25
-        self.books = []
+        self.books = {}
 
 
 # Observer
@@ -328,8 +332,8 @@ class LibraryCatalog:
             return -1
         for i in list(self.catalog.keys()):
             if i.identify == identify:
-                for j in user.books:
-                    if j[0].identify == identify:
+                for j in list(user.books.keys()):
+                    if j.identify == identify:
                         # User already has this book
                         return -2
                 if self.catalog[i][0] < 1:
@@ -337,7 +341,7 @@ class LibraryCatalog:
                     manager.attach(user, i)
                     return 0
                 # Give book to user's list as ordered (not taken yet)
-                user.books.append([i, "Ordered"])
+                user.books[i] = "Ordered"
                 self.catalog[i][0] -= 1
                 manager.deattach(user, i)
                 return 1
@@ -353,10 +357,10 @@ class LibraryCatalog:
             return -1
         for i in list(self.catalog.keys()):
             if i.identify == identify:
-                for j in user.books:
-                    if j[0].identify == identify:
+                for j in list(user.books.keys()):
+                    if j.identify == identify:
                         # Everything is in order
-                        user.books.remove(j)
+                        del user.books[j]
                         self.catalog[i][0] += 1
                         if self.catalog[i][0] == 1:
                             # Book is available, inform observers
@@ -371,11 +375,11 @@ class LibraryCatalog:
         """
         Changes book's status.
         """
-        for i in user.books:
-            if i[0].identify == identify:
-                if i[1] == "Ordered":
+        for i in list(user.books.keys()):
+            if i.identify == identify:
+                if user.books[i] == "Ordered":
                     # User took the book
-                    i[1] = "Borrowed"
+                    user.books[i] = "Borrowed"
                     return 1
                 # Book is not ordered (it is probably taken already)
                 return -1

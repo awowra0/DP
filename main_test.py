@@ -156,9 +156,9 @@ class Tester:
         """
         expect = ["Ordered", 1, "Borrowed"]
         got = []
-        got.append(users[0].books[0][1])
+        got.append(list(users[0].books.values())[0])
         got.append(interface.update_borrow(users[0], 3))
-        got.append(users[0].books[0][1])
+        got.append(list(users[0].books.values())[0])
         assert expect == got
         print("Test 13 - facade updated book status")
 
