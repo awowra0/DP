@@ -51,7 +51,7 @@ class User(abc.ABC):
     def __init__(self, name: str):
         self.name = name
         self.limit = 0
-        self.books: list(Book, str) = []
+        self.books: list[Book, str] = []
         # raise NotImplementedError("User is supposed to be an abstract class")
 
     def get_limit(self) -> int:
@@ -146,7 +146,7 @@ class Observer:
     def __init__(self, user: User, book: Book):
         self.user = user
         self.books = [book]
-        self.infos: list(str) = []
+        self.infos: list[str] = []
 
     def update(self, text: str) -> str:
         """
@@ -206,7 +206,7 @@ class ObserverManager:
         )
         return 1
 
-    def deattach(self, user: User, book: Book) -> 1:
+    def deattach(self, user: User, book: Book) -> int:
         """
         Removes given book from given user's wishlist.
         """
@@ -568,7 +568,7 @@ class ActionInterface:
         """
         return self.catalog.get_catalog()
 
-    def show_any_book(self) -> Book:
+    def show_any_book(self) -> str:
         """
         Shows one book from catalog.
         """

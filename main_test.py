@@ -8,7 +8,7 @@ from main import (
     ActionInterface,
     DataAdapter,
     Book,
-    UserFactory
+    UserFactory,
 )
 
 
@@ -34,7 +34,7 @@ class Tester:
             Book("A", 0, 1999),
             Book("B", 1, 2002),
             Book("C", 2, 2004),
-            Book("D", 3, 2020)
+            Book("D", 3, 2020),
         ]:
             got = cat.add_book(i)
             assert expect == got
